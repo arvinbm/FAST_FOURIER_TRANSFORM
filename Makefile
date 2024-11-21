@@ -17,7 +17,7 @@ PARALLEL_EXEC = fft_parallel
 DISTRIBUTED_EXEC = fft_distributed
 
 # Common headers
-# COMMON = common/utils.h common/cxxopts.h common/get_time.h
+COMMON = common/cxxopts.h
 
 # Default target
 all: $(SERIAL_EXEC) $(PARALLEL_EXEC) $(DISTRIBUTED_EXEC)
