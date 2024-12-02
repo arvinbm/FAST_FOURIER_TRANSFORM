@@ -12,9 +12,9 @@ PARALLEL_SRC = Fast_Fourier_Transform_Parallel.cpp
 DISTRIBUTED_SRC = Fast_Fourier_Transform_Distributed.cpp
 
 # Executable names
-SERIAL_EXEC = fft_serial
-PARALLEL_EXEC = fft_parallel
-DISTRIBUTED_EXEC = fft_distributed
+SERIAL_EXEC = Fast_Fourier_Transform_Serial
+PARALLEL_EXEC = Fast_Fourier_Transform_Parallel
+DISTRIBUTED_EXEC = Fast_Fourier_Transform_Distributed
 
 # Common headers
 COMMON = common/cxxopts.h
