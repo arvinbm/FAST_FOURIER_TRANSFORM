@@ -16,22 +16,22 @@ SERIAL_EXEC = Fast_Fourier_Transform_Serial
 PARALLEL_EXEC = Fast_Fourier_Transform_Parallel
 DISTRIBUTED_EXEC = Fast_Fourier_Transform_Distributed
 
-# Common headers
-COMMON = common/cxxopts.h
+# Core headers
+CORE = core/cxxopts.h core/get_time.h core/utils.h
 
 # Default target
 all: $(SERIAL_EXEC) $(PARALLEL_EXEC) $(DISTRIBUTED_EXEC)
 
 # Serial FFT
-$(SERIAL_EXEC): $(SERIAL_SRC) $(COMMON)
+$(SERIAL_EXEC): $(SERIAL_SRC) $(CORE)
 	$(CXX) $(CXXFLAGS) $< $(LDFLAGS) -o $@
 
 # Parallel FFT (uses pthreads)
-$(PARALLEL_EXEC): $(PARALLEL_SRC) $(COMMON)
+$(PARALLEL_EXEC): $(PARALLEL_SRC) $(CORE)
 	$(CXX) $(CXXFLAGS) $(PTHREAD_FLAGS) $< $(LDFLAGS) -o $@
 
 # Distributed FFT (uses MPI)
-$(DISTRIBUTED_EXEC): $(DISTRIBUTED_SRC) $(COMMON)
+$(DISTRIBUTED_EXEC): $(DISTRIBUTED_SRC) $(CORE)
 	$(MPICXX) $(MPI_CXXFLAGS) -DMPI_ENABLED $< $(LDFLAGS) -o $@
 
 # Clean targets

@@ -1,4 +1,5 @@
-#include "common/cxxopts.h"
+#include "core/cxxopts.h"
+#include "core/get_time.h"
 #include <iostream>
 #include <vector>
 #include <complex>
@@ -229,13 +230,22 @@ int main(int argc, char *argv[]) {
             std::cout << "Executing the iterative serial algorithm..." << std::endl;
             std::cout << std::endl;
 
+            // Timer instantiation
+            timer iterative_alg_timer;
+            double time_taken = 0.0;
+
+            // -------------------------------------------------------------------
+            iterative_alg_timer.start();
+
             // Iterative approach
             std::vector<std::complex<double>> output_data(n_samples);
             iterativeFFT(sine_wave, output_data, n_samples);
+            
+            time_taken = iterative_alg_timer.stop();
+            // -------------------------------------------------------------------
 
-            for (const auto& item : output_data) {
-                std::cout << item << std::endl;
-            }
+            // Print the time taken to execute the algorithm
+            std::cout << "The time taken to execute the iterative FFT (serial version): " << time_taken << std::endl;
 
         } else {
             std::cout << std::endl;
@@ -245,12 +255,20 @@ int main(int argc, char *argv[]) {
             // Obtain omega based on number of samples
             auto omega = OMEGA(n_samples);
 
+            // Timer instantiation
+            timer recursive_alg_timer;
+            double time_taken = 0.0;
+
+            // -------------------------------------------------------------------
+            recursive_alg_timer.start();
+
             // Recursive approach
             std::vector<std::complex<double>> output_data(n_samples);
             recursiveFFT(sine_wave, output_data, n_samples, omega);
 
-            for (const auto& item : output_data) {
-                std::cout << item << std::endl;
-            }
+            time_taken = recursive_alg_timer.stop();
+            // -------------------------------------------------------------------
+
+            std::cout << "The time taken to execute the recursive FFT (serial version): " << time_taken << std::endl;
         }
 }
