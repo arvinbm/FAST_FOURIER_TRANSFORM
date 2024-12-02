@@ -118,7 +118,7 @@ std::vector<std::complex<double>>& output_signal, int n_samples) {
  * @param omega:The angular frequency of the signal, represented as a complex number.
  */
 void recursiveFFT(const std::vector<std::complex<double>>& input_signal, 
-std::vector<std::complex<double>>& output_signal, int n_samples, std::complex<double> omega) {
+std::vector<std::complex<double>>& output_signal, uint n_samples, std::complex<double> omega) {
         // Base case: if the number of samples is 1, simply copy the input to the output
     if (n_samples == 1) {
         output_signal[0] = input_signal[0];

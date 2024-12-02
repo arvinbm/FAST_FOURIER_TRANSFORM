@@ -1,5 +1,6 @@
 #include "core/cxxopts.h"
 #include "core/get_time.h"
+#include "core/utils.h"
 #include <iostream>
 #include <vector>
 #include <complex>
@@ -13,7 +14,7 @@
 #define DEFAULT_AMPLITUDE "1.0"
 #define DEFAULT_FREQUENCY "50.0"
 #define DEFAULT_SAMPLING_RATE "1000.0"
-#define DEFAULT_NUMBER_OF_THREADS "4"
+#define DEFAULT_NUM_OF_THREADS "4"
 #define PI M_PI
 #define BASE 2.0
 #define EXPONENTIAL_PART (std::pow(BASE, 2 * PI))
@@ -50,6 +51,33 @@ std::vector<std::complex<double>> generateSineWave(uint n_samples, double amplit
     return sine_wave;
 }
 
+void parallelFFT(const std::vector<std::complex<double>>& input_signal, 
+std::vector<std::complex<double>>& output_signal, uint n_samples, uint n_threads) {
+    timer parallel_timer;
+    double total_time_taken = 0.0;
+    std::vector<std::tuple<uint, double>> times_taken; // Stores (Thread ID, Time Taken Per Thread)
+    CustomBarrier barrier(n_threads);
+    std::mutex times_taken_mutex;
+
+    // Create threads and distribute the work across
+    // No need for remainders as the number of samples are checked to be an even number.
+    std::vector<std::thread> threads;
+    threads.resize(n_threads);
+    uint num_elements_per_thread = n_samples / n_threads;
+
+    // Launch the threads
+    // -------------------------------------------------------------------
+    parallel_timer.start();
+    for (uint i = 0; i < n_threads; i++) {
+        // Determine the range of the input signal each thread will work on
+        uint start_index = num_elements_per_thread * i;
+        uint end_index = num_elements_per_thread * (i + 1);
+
+        std::cout << "start index: " << start_index << std::endl;
+        std::cout << "end index: " <<  end_index << std::endl;
+    }
+}
+
 // https://www.educative.io/answers/how-to-check-if-a-number-is-a-power-of-2-in-cpp
 void validateNumSamplesToBePowerOfTwo(uint n_samples) {
     uint i = n_samples & (n_samples - 1);
@@ -75,7 +103,7 @@ int main(int argc, char *argv[]) {
             {"sampling_rate", "Sampling Rate",
             cxxopts::value<double>()->default_value(DEFAULT_SAMPLING_RATE)},
             {"n_threads", "Number of Threads",
-            cxxopts::value<uint>()->default_value(DEFAULT_NUMBER_OF_THREADS)}
+            cxxopts::value<uint>()->default_value(DEFAULT_NUM_OF_THREADS)}
         });
 
         auto cl_options = options.parse(argc, argv);
@@ -99,4 +127,13 @@ int main(int argc, char *argv[]) {
         std::cout << "Frequency: " << frequency << " Hz" << std::endl;
         std::cout << "Sampling Rate: " << sampling_rate << " Hz" << std::endl;
         std::cout << "Number of Threads: " << n_threads << std::endl;
+
+        // Generate a sine wave to be used for Fast Fourier Transform
+        auto sine_wave = generateSineWave(n_samples, amplitude, frequency, sampling_rate);
+
+
+
+        // Execute the parallel version of FFT
+        std::vector<std::complex<double>> output_data(n_samples);
+        parallelFFT(sine_wave, output_data, n_samples, n_threads);
 }
