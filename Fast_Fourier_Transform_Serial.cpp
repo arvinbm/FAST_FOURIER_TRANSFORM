@@ -44,34 +44,34 @@ std::vector<std::complex<double>> generateSineWave(uint n_samples, double amplit
 
 /**
  * Implementation based on the Cooley-Tukey algorithm for one-dimensional, unordered, radix-2 FFT.
- * This function computes the FFT iteratively, strictly following the pseudocode provided.
+ * This function computes the FFT iteratively.
  * It uses a two-array method where intermediate results are stored in an auxiliary array at each stage. 
  * 
- * @param X: A vector of complex numbers representing the time-domain input signal.
- * @param Y: A vector of complex numbers to store the frequency-domain output signal (same size as `X`).
- * @param n: The number of input samples (must be a power of 2).
- * @throws std::invalid_argument if the input size `n` is not a power of 2 or is not positive.
+ * @param input_signal: A vector of complex numbers representing the time-domain input signal.
+ * @param output_signal: A vector of complex numbers to store the frequency-domain output signal.
+ * @param n_samples: The number of input samples.
  */
-void iterativeFFT(const std::vector<std::complex<double>>& X, std::vector<std::complex<double>>& Y, int n) {
+void iterativeFFT(const std::vector<std::complex<double>>& input_signal, 
+std::vector<std::complex<double>>& output_signal, int n_samples) {
     // Step 3: Compute r = log2(n)
-    int r = static_cast<int>(std::log2(n));
+    int r = static_cast<int>(std::log2(n_samples));
     
     // Step 4: Initialize R with the input array X
-    std::vector<std::complex<double>> R(n);
-    for (int i = 0; i < n; ++i) {
-        R[i] = X[i];
+    std::vector<std::complex<double>> R(n_samples);
+    for (int i = 0; i < n_samples; ++i) {
+        R[i] = input_signal[i];
     }
     
     // Outer loop: Iterate over each stage
     for (int m = 0; m < r; ++m) {
         // Step 7: Copy R into S
-        std::vector<std::complex<double>> S(n);
-        for (int i = 0; i < n; ++i) {
+        std::vector<std::complex<double>> S(n_samples);
+        for (int i = 0; i < n_samples; ++i) {
             S[i] = R[i];
         }
 
         // Step 8: Inner loop
-        for (int i = 0; i < n; ++i) {
+        for (int i = 0; i < n_samples; ++i) {
             // Step 9: Compute j and k based on the binary representation of i
             int mask = (1 << (r - m - 1)); // Mask to extract the m-th bit
             int j = i & ~mask;            // Set the m-th bit to 0
@@ -84,10 +84,25 @@ void iterativeFFT(const std::vector<std::complex<double>>& X, std::vector<std::c
     }
 
     // Step 15: Copy the result from R to Y
-    for (int i = 0; i < n; ++i) {
-        Y[i] = R[i];
+    for (int i = 0; i < n_samples; ++i) {
+        output_signal[i] = R[i];
     }
 }
+
+/**
+ * Implementation based on the Cooley-Tukey algorithm for one-dimensional, unordered, radix-2 FFT.
+ * This function computes the FFT recursively.
+ * It uses a two-array method where intermediate results are stored in an auxiliary array at each stage. 
+ * 
+ * @param input_signal: A vector of complex numbers representing the time-domain input signal.
+ * @param output_signal: A vector of complex numbers to store the frequency-domain output signal.
+ * @param n_samples: The number of input samples.
+ */
+void recursiveFFT(const std::vector<std::complex<double>>& input_signal, 
+std::vector<std::complex<double>>& output_signal, int n_samples) {
+    std::cout << "TO DO" << std::endl;
+}
+
 
 void validateNumSamplesToBeEven(uint n_samples) {
     if (n_samples % 2 == 1) {
@@ -157,5 +172,22 @@ int main(int argc, char *argv[]) {
 
         // Perform Fast Fourier Transform serially
         std::vector<std::complex<double>> output_data(n_samples);
-        iterativeFFT(sine_wave, output_data, n_samples);
+        if (algorithm_type == "iterative") {
+            std::cout << std::endl;
+            std::cout << "Executing the iterative serial algorithm..." << std::endl;
+            std::cout << std::endl;
+
+            iterativeFFT(sine_wave, output_data, n_samples);
+
+            for (const auto& item : output_data) {
+                std::cout << item << std::endl;
+            }
+
+        } else {
+            std::cout << std::endl;
+            std::cout << "Executing the recursive serial algorithm..." << std::endl;
+            std::cout << std::endl;
+
+            recursiveFFT(sine_wave, output_data, n_samples);
+        }
 }
