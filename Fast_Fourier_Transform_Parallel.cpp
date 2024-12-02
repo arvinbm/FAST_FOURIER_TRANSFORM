@@ -51,11 +51,40 @@ std::vector<std::complex<double>> generateSineWave(uint n_samples, double amplit
     return sine_wave;
 }
 
+// Comparator function to sort by the first element (ID) in the tuple (Written by GenAI)
+bool compareByID(const std::tuple<uint, double> &a, const std::tuple<uint, double> &b) {
+    return std::get<0>(a) < std::get<0>(b);
+}
+
+void parallelFFTExecution (const std::vector<std::complex<double>>& input_signal,
+std::vector<std::complex<double>>& output_signal, uint start_index, 
+uint end_index,uint id, std::vector<std::tuple<uint, double>> &times_taken,
+CustomBarrier &barrier, std::mutex &times_taken_mutex) {
+
+    timer thread_timer;
+    double thread_time_taken = 0.0;
+
+    // -------------------------------------------------------------------
+    thread_timer.start();
+
+    // TODO (ACTUAL EXECUTION)
+
+    thread_time_taken = thread_timer.stop();
+    // -------------------------------------------------------------------
+
+    // Append the time_taken for the thread into the times_taken vector
+    std::unique_lock<std::mutex> lock(times_taken_mutex);
+    times_taken[id] = std::make_tuple(id, thread_time_taken);
+    lock.unlock();
+}
+
 void parallelFFT(const std::vector<std::complex<double>>& input_signal, 
 std::vector<std::complex<double>>& output_signal, uint n_samples, uint n_threads) {
+
     timer parallel_timer;
     double total_time_taken = 0.0;
     std::vector<std::tuple<uint, double>> times_taken; // Stores (Thread ID, Time Taken Per Thread)
+    times_taken.resize(n_threads);
     CustomBarrier barrier(n_threads);
     std::mutex times_taken_mutex;
 
@@ -73,9 +102,28 @@ std::vector<std::complex<double>>& output_signal, uint n_samples, uint n_threads
         uint start_index = num_elements_per_thread * i;
         uint end_index = num_elements_per_thread * (i + 1);
 
-        std::cout << "start index: " << start_index << std::endl;
-        std::cout << "end index: " <<  end_index << std::endl;
+        threads[i] = std::thread(parallelFFTExecution, std::ref(input_signal), std::ref(output_signal), start_index, end_index, i,
+        std::ref(times_taken), std::ref(barrier), std::ref(times_taken_mutex));
     }
+
+    // Join all the threads
+    for (uint i = 0; i < n_threads; i++) {
+        threads[i].join();
+    }
+
+    total_time_taken = parallel_timer.stop();
+    // -------------------------------------------------------------------
+
+    // Print the time taken for each thread
+    std::sort(times_taken.begin(), times_taken.end(), compareByID);
+    std::cout << std::endl;
+    std::cout << "thread_id, time_taken" << std::endl;
+
+    for (uint i = 0; i < n_threads; i++) {
+        std::cout << std::get<0>(times_taken[i]) << ", " << std::get<1>(times_taken[i]) << std::endl;
+    }
+
+    std::cout << "Time taken (in seconds) : " << total_time_taken << "\n";
 }
 
 // https://www.educative.io/answers/how-to-check-if-a-number-is-a-power-of-2-in-cpp
