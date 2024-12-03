@@ -192,6 +192,27 @@ void validateNumSamplesToBePowerOfTwo(uint n_samples) {
     }
 }
 
+void printFirstOutputs(std::vector<std::complex<double>>& output_signal, uint n_samples) {
+
+    if (n_samples <= 8) {
+        // If there are only a few samples print all of the results
+        std::cout << std::endl;
+        std::cout << "First " << n_samples << " samples:" << std::endl;
+        int item_counter = 1;
+        for (const auto& item : output_signal) {
+            std::cout << item_counter << ". " << item << std::endl;
+            item_counter++;
+        }
+    } else {
+        // If there are more samples only print the first 10
+        std::cout << std::endl;
+        std::cout << "First 10 samples:" << std::endl;
+        for (int i = 1; i < 11; i++) {
+            std::cout << i << ". " << output_signal[i] << std::endl;
+        }
+    }     
+}
+
 int main(int argc, char *argv[]) { 
     cxxopts::Options options(
         "Fast_Fourier_Transfrom",
@@ -236,9 +257,10 @@ int main(int argc, char *argv[]) {
         // Generate a sine wave to be used for Fast Fourier Transform
         auto sine_wave = generateSineWave(n_samples, amplitude, frequency, sampling_rate);
 
-
-
         // Execute the parallel version of FFT
         std::vector<std::complex<double>> output_data(n_samples);
         parallelFFT(sine_wave, output_data, n_samples, n_threads);
+
+        // Print the fist few outputs
+        printFirstOutputs(output_data, n_samples);
 }
