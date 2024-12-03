@@ -57,17 +57,64 @@ bool compareByID(const std::tuple<uint, double> &a, const std::tuple<uint, doubl
 }
 
 void parallelFFTExecution (const std::vector<std::complex<double>>& input_signal,
-std::vector<std::complex<double>>& output_signal, uint start_index, 
+std::vector<std::complex<double>>& output_signal, uint n_samples, uint start_index, 
 uint end_index,uint id, std::vector<std::tuple<uint, double>> &times_taken,
 CustomBarrier &barrier, std::mutex &times_taken_mutex) {
 
     timer thread_timer;
     double thread_time_taken = 0.0;
+    using Complex = std::complex<double>;
+    size_t log2n = static_cast<size_t>(std::log2(n_samples));
+    const size_t N = static_cast<size_t>(n_samples);
 
     // -------------------------------------------------------------------
     thread_timer.start();
 
-    // TODO (ACTUAL EXECUTION)
+    // Let thread 0 handle the bit reversal
+    if (id == 0) {
+        size_t j = 0;
+        for (size_t i = 1; i < N; ++i) {
+            size_t bit = N >> 1;
+            while (j & bit) {
+                j ^= bit;
+                bit >>= 1;
+            }
+            j ^= bit;
+
+            if (i < j) {
+                std::swap(output_signal[i], output_signal[j]);
+            }
+        }
+    }
+
+    // Synchronize all threads after bit reversal
+    barrier.wait();
+
+    // Iterative FFT: Process data in stages
+    for (size_t s = 1; s <= log2n; ++s) {
+        size_t len = 1 << s;     // Current stage size
+        double angle = -2.0 * PI / len;
+        Complex wlen(cos(angle), sin(angle));
+
+        // Divide the workload among threads
+        for (size_t i = start_index; i < end_index; i += len) {
+            Complex w(1.0);
+            for (size_t j = 0; j < len / 2; ++j) {
+                size_t index1 = i + j;
+                size_t index2 = i + j + len / 2;
+
+                Complex u = output_signal[index1];
+                Complex v = output_signal[index2] * w;
+                output_signal[index1] = u + v;
+                output_signal[index2] = u - v;
+
+                w *= wlen;
+            }
+        }
+
+        // Synchronize threads after each stage
+        barrier.wait();
+    }
 
     thread_time_taken = thread_timer.stop();
     // -------------------------------------------------------------------
@@ -102,8 +149,18 @@ std::vector<std::complex<double>>& output_signal, uint n_samples, uint n_threads
         uint start_index = num_elements_per_thread * i;
         uint end_index = num_elements_per_thread * (i + 1);
 
-        threads[i] = std::thread(parallelFFTExecution, std::ref(input_signal), std::ref(output_signal), start_index, end_index, i,
-        std::ref(times_taken), std::ref(barrier), std::ref(times_taken_mutex));
+        // Each thread handles both copying and FFT execution
+        threads[i] = std::thread(
+            [&input_signal, &output_signal, n_samples, start_index, end_index, i, &times_taken, &barrier, &times_taken_mutex]() {
+                // Copy input_signal to output_signal for the assigned range
+                for (uint j = start_index; j < end_index; ++j) {
+                    output_signal[j] = input_signal[j];
+                }
+
+                // Call the FFT execution function for the assigned range
+                parallelFFTExecution(input_signal, output_signal, n_samples, start_index, end_index, i, times_taken, barrier, times_taken_mutex);
+            }
+        );
     }
 
     // Join all the threads
