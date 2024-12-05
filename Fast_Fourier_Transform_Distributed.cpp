@@ -86,7 +86,7 @@ void iterativeFFT_MPI(std::vector<std::complex<double>>& input_signal,
         double angle = -2.0 * PI / len;
         std::complex<double> wlen(std::cos(angle), std::sin(angle));
 
-        for (int i = 0; i < N; i += len) {
+        for (int i = start; i < N; i += len) {
             std::complex<double> w(1.0);
             for (int j = 0; j < len / 2; ++j) {
                 int index1 = i + j;
@@ -194,16 +194,15 @@ int main(int argc, char *argv[]) {
     MPI_Barrier(MPI_COMM_WORLD);
     double end_time = MPI_Wtime();
 
-    if (rank == 0) {
-        std::cout << "Parallel FFT completed in " << (end_time - start_time) << " seconds.\n";
-        printFirstOutputs(local_output_signal, n_samples);
-    }
-
     // Gather full result on root process
     std::vector<std::complex<double>> gathered_output(n_samples);
     MPI_Gather(local_output_signal.data(), local_n, MPI_DOUBLE_COMPLEX,
                gathered_output.data(), local_n, MPI_DOUBLE_COMPLEX, 0, MPI_COMM_WORLD);
 
+    if (rank == 0) {
+        std::cout << "Parallel FFT completed in " << (end_time - start_time) << " seconds.\n";
+        printFirstOutputs(gathered_output, n_samples);
+    }
 
     MPI_Finalize();
     return 0;
