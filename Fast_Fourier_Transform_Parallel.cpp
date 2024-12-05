@@ -96,7 +96,7 @@ void parallelFFTExecution(
     // Synchronize all threads after bit reversal
     barrier.wait();
 
-    // Iterative FFT: Process data in stages
+    // Iterative FFT Process data in stages
     for (size_t s = 1; s <= log2n; ++s) {
         size_t len = 1 << s; // Current stage size
         double angle = -2.0 * PI / len;
@@ -104,27 +104,24 @@ void parallelFFTExecution(
 
         // Align thread ranges to current FFT block size
         size_t effective_start = std::max(static_cast<size_t>((start_index / len) * len), static_cast<size_t>(start_index));
-        if (start_index % len != 0) effective_start += len; // Align to next multiple of len
+        if (start_index % len != 0) {
+            // Align to next multiple of len
+            effective_start += len;
+        }
 
         size_t effective_end = std::min(static_cast<size_t>(((end_index + len - 1) / len) * len), static_cast<size_t>(end_index));
 
         if (effective_start >= effective_end) {
-            std::cout << "Thread " << id << ": Skipping stage " << s << " due to invalid range" << std::endl;
             barrier.wait();
             continue;
         }
 
-        // Process data in groups of size 'len'
+        // Process data in groups of size len
         for (size_t i = effective_start; i < effective_end; i += len) {
             Complex w(1.0); // Initialize twiddle factor
             for (size_t j = 0; j < len / 2; ++j) {
                 size_t index1 = i + j;
                 size_t index2 = i + j + len / 2;
-
-                if (index1 >= N || index2 >= N) {
-                    std::cerr << "Invalid indices detected: index1 = " << index1 << ", index2 = " << index2 << " in thread " << id << "\n";
-                    continue; // Skip invalid computations
-                }
 
                 // Butterfly computations
                 Complex u = output_signal[index1];
