@@ -86,7 +86,10 @@ void iterativeFFT_MPI(std::vector<std::complex<double>>& input_signal,
         double angle = -2.0 * PI / len;
         std::complex<double> wlen(std::cos(angle), std::sin(angle));
 
-        for (int i = start; i < N; i += len) {
+        size_t effective_start = std::max(static_cast<size_t>((start / len) * len), static_cast<size_t>(start));
+        if (effective_start % len != 0) effective_start += len; // Align to next multiple of len
+
+        for (int i = effective_start; i < N; i += len) {
             std::complex<double> w(1.0);
             for (int j = 0; j < len / 2; ++j) {
                 int index1 = i + j;
