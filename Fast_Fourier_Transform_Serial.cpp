@@ -115,10 +115,9 @@ std::vector<std::complex<double>>& output_signal, int n_samples) {
  * @param input_signal: A vector of complex numbers representing the time-domain input signal.
  * @param output_signal: A vector of complex numbers to store the frequency-domain output signal.
  * @param n_samples: The number of input samples.
- * @param omega:The angular frequency of the signal, represented as a complex number.
  */
-void recursiveFFT(const std::vector<std::complex<double>>& input_signal, 
-std::vector<std::complex<double>>& output_signal, uint n_samples, std::complex<double> omega) {
+void recursiveFFT(const std::vector<std::complex<double>>& input_signal,
+std::vector<std::complex<double>>& output_signal, uint n_samples) {
         // Base case: if the number of samples is 1, simply copy the input to the output
     if (n_samples == 1) {
         output_signal[0] = input_signal[0];
@@ -137,12 +136,9 @@ std::vector<std::complex<double>>& output_signal, uint n_samples, std::complex<d
     std::vector<std::complex<double>> even_indexed_output(n_samples / 2);
     std::vector<std::complex<double>> odd_indexed_output(n_samples / 2);
 
-    // Compute omega squared
-    std::complex<double> omega_squared = std::polar(1.0, -2.0 * M_PI / (n_samples / 2));
-
     // Recursive calls for even and odd parts
-    recursiveFFT(even_signal, even_indexed_output, n_samples / 2, omega_squared);
-    recursiveFFT(odd_signal, odd_indexed_output, n_samples / 2, omega_squared);
+    recursiveFFT(even_signal, even_indexed_output, n_samples / 2);
+    recursiveFFT(odd_signal, odd_indexed_output, n_samples / 2);
 
     std::complex<double> omega_power = 1.0;  // Initialize ω^0
     std::complex<double> omega_increment = std::polar(1.0, -2.0 * M_PI / n_samples);  // Precompute ω
@@ -275,9 +271,6 @@ int main(int argc, char *argv[]) {
             std::cout << "Executing the recursive serial algorithm..." << std::endl;
             std::cout << std::endl;
 
-            // Obtain omega based on number of samples
-            auto omega = OMEGA(n_samples);
-
             // Timer instantiation
             timer recursive_alg_timer;
             double time_taken = 0.0;
@@ -287,7 +280,7 @@ int main(int argc, char *argv[]) {
 
             // Recursive approach
             std::vector<std::complex<double>> output_data(n_samples);
-            recursiveFFT(sine_wave, output_data, n_samples, omega);
+            recursiveFFT(sine_wave, output_data, n_samples);
 
             time_taken = recursive_alg_timer.stop();
             // -------------------------------------------------------------------
