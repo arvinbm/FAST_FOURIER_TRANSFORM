@@ -141,21 +141,21 @@ int main(int argc, char *argv[]) {
     options.add_options(
         "",
         {
-            {"nSamples", "Number of Samples", 
+            {"n_samples", "Number of Samples", 
             cxxopts::value<uint>()->default_value(DEFAULT_NUMBER_OF_SAMPLES)},
             {"amplitude", "Amplitude of the Sine Wave",
             cxxopts::value<double>()->default_value(DEFAULT_AMPLITUDE)},
             {"frequency", "Frequency of the Sine Wave",
             cxxopts::value<double>()->default_value(DEFAULT_FREQUENCY)},
-            {"samplingRate", "Sampling Rate",
+            {"sampling_rate", "Sampling Rate",
             cxxopts::value<double>()->default_value(DEFAULT_SAMPLING_RATE)}
         });
 
     auto cl_options = options.parse(argc, argv);
-    uint n_samples = cl_options["nSamples"].as<uint>();
+    uint n_samples = cl_options["n_samples"].as<uint>();
     double amplitude = cl_options["amplitude"].as<double>();
     double frequency = cl_options["frequency"].as<double>();
-    double sampling_rate = cl_options["samplingRate"].as<double>();
+    double sampling_rate = cl_options["sampling_rate"].as<double>();
 
     try {
         validateNumSamplesToBePowerOfTwo(n_samples);
