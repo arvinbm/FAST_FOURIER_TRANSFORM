@@ -86,10 +86,12 @@ void iterativeFFT_MPI(std::vector<std::complex<double>>& input_signal,
         double angle = -2.0 * PI / len;
         std::complex<double> wlen(std::cos(angle), std::sin(angle));
 
-        size_t effective_start = std::max(static_cast<size_t>((start / len) * len), static_cast<size_t>(start));
-        if (effective_start % len != 0) effective_start += len; // Align to next multiple of len
+        // Align start to the next complete FFT block boundary >= start
+        size_t effective_start = (start % len == 0)
+            ? static_cast<size_t>(start)
+            : ((static_cast<size_t>(start) / len) + 1) * len;
 
-        for (int i = effective_start; i < N; i += len) {
+        for (int i = effective_start; i < end; i += len) {
             std::complex<double> w(1.0);
             for (int j = 0; j < len / 2; ++j) {
                 int index1 = i + j;
