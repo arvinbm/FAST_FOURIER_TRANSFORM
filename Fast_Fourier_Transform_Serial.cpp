@@ -184,8 +184,8 @@ void printFirstOutputs(std::vector<std::complex<double>>& output_signal, uint n_
         // If there are more samples only print the first 10
         std::cout << std::endl;
         std::cout << "First 10 samples:" << std::endl;
-        for (int i = 1; i < 11; i++) {
-            std::cout << i << ". " << output_signal[i] << std::endl;
+        for (int i = 0; i < 10; i++) {
+            std::cout << (i + 1) << ". " << output_signal[i] << std::endl;
         }
     }     
 }
