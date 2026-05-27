@@ -102,12 +102,10 @@ void parallelFFTExecution(
         double angle = -2.0 * PI / len;
         Complex wlen(cos(angle), sin(angle));
 
-        // Align thread ranges to current FFT block size
-        size_t effective_start = std::max(static_cast<size_t>((start_index / len) * len), static_cast<size_t>(start_index));
-        if (start_index % len != 0) {
-            // Align to next multiple of len
-            effective_start += len;
-        }
+        // Align thread start to the next complete FFT block boundary >= start_index
+        size_t effective_start = (start_index % len == 0)
+            ? start_index
+            : ((start_index / len) + 1) * len;
 
         size_t effective_end = std::min(static_cast<size_t>(((end_index + len - 1) / len) * len), static_cast<size_t>(end_index));
 
